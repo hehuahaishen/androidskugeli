@@ -16,5 +16,4 @@
         <attr name="maxRows" format="integer"/>
     </declare-styleable>
 
-
 </resources>

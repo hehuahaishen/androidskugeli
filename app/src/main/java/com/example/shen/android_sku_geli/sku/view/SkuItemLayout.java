@@ -3,7 +3,6 @@ package com.example.shen.android_sku_geli.sku.view;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -11,7 +10,7 @@ import android.widget.TextView;
 
 
 import com.example.shen.android_sku_geli.R;
-import com.example.shen.android_sku_geli.sku.bean.SkuAttribute;
+import com.example.shen.android_sku_geli.sku.bean.SkuAttrBean;
 import com.example.shen.android_sku_geli.sku.utils.ScreenUtils;
 import com.example.shen.android_sku_geli.sku.utils.ViewUtils;
 import com.example.shen.android_sku_geli.sku.widget.FlowLayout;
@@ -103,7 +102,7 @@ public class SkuItemLayout extends LinearLayout {
         for (int i = 0; i < attributeValueList.size(); i++) {
             SkuItemView itemView = new SkuItemView(getContext());
             itemView.setId(ViewUtils.generateViewId());
-            itemView.setAttributeValue(attributeValueList.get(i));
+            itemView.setAttributeName(attributeValueList.get(i));
             itemView.setOnClickListener(new ItemClickListener(position, itemView));
             itemView.setLayoutParams(new FlowLayout.LayoutParams(
                     FlowLayout.LayoutParams.WRAP_CONTENT,
@@ -128,14 +127,12 @@ public class SkuItemLayout extends LinearLayout {
     /**
      * 设置 -- "指定属性"为"可点击状态"
      *
-     * @param attributeValue
+     * @param attributeName
      */
-    public void optionItemViewEnableStatus(String attributeValue) {
-//        Log.i("shen", "attributeValue:" + attributeValue);
+    public void optionItemViewEnableStatus(String attributeName) {
         for (int i = 0; i < mAttributeValueLayout.getChildCount(); i++) {
             SkuItemView itemView = (SkuItemView) mAttributeValueLayout.getChildAt(i);
-//            Log.i("shen", "-----attributeValue.equals:" + itemView.getAttributeValue());
-            if (attributeValue.equals(itemView.getAttributeValue())) {
+            if (attributeName.equals(itemView.getAttributeName())) {
                 itemView.setEnabled(true);
             }
         }
@@ -144,12 +141,12 @@ public class SkuItemLayout extends LinearLayout {
     /**
      * 设置 -- "指定属性"为"选中状态"
      *
-     * @param selectValue
+     * @param selectAttributeName
      */
-    public void optionItemViewSelectStatus(SkuAttribute selectValue) {
+    public void optionItemViewSelectStatus(SkuAttrBean selectAttributeName) {
         for (int i = 0; i < mAttributeValueLayout.getChildCount(); i++) {
             SkuItemView itemView = (SkuItemView) mAttributeValueLayout.getChildAt(i);
-            if (selectValue.getAttributeName().equals(itemView.getAttributeValue())) {
+            if (selectAttributeName.getAttributeName().equals(itemView.getAttributeName())) {
                 itemView.setEnabled(true);
                 itemView.setSelected(true);
             }
@@ -187,9 +184,9 @@ public class SkuItemLayout extends LinearLayout {
     private void onSkuItemClicked(int position, SkuItemView view) {
         boolean selected = !view.isSelected();
 
-        SkuAttribute attribute = new SkuAttribute(
+        SkuAttrBean attribute = new SkuAttrBean(
                 -1, mAttributeNameTv.getText().toString(),
-                -1, view.getAttributeValue()
+                -1, view.getAttributeName()
         );
 
         mSelectListener.onSelect(position, selected, attribute);
@@ -222,6 +219,6 @@ public class SkuItemLayout extends LinearLayout {
      * 传递数据的接口
      */
     interface OnSkuItemSelectListener {
-        void onSelect(int position, boolean select, SkuAttribute attribute);
+        void onSelect(int position, boolean select, SkuAttrBean attribute);
     }
 }

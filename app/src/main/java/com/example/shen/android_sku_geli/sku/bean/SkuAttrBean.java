@@ -3,13 +3,12 @@ package com.example.shen.android_sku_geli.sku.bean;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Comparator;
 
 /**
  * Created by wuhenzhizao on 2017/7/20.
  */
-public class SkuAttribute implements Parcelable {
+public class SkuAttrBean implements Parcelable {
 
     private int specId;
     private String specName;
@@ -48,7 +47,7 @@ public class SkuAttribute implements Parcelable {
         this.attributeName = attributeName;
     }
 
-    public SkuAttribute(int specId, String specName, int attributeId, String attributeName) {
+    public SkuAttrBean(int specId, String specName, int attributeId, String attributeName) {
         this.specId = specId;
         this.specName = specName;
         this.attributeId = attributeId;
@@ -68,22 +67,47 @@ public class SkuAttribute implements Parcelable {
         dest.writeString(this.attributeName);
     }
 
-    protected SkuAttribute(Parcel in) {
+    protected SkuAttrBean(Parcel in) {
         this.specId = in.readInt();
         this.specName = in.readString();
         this.attributeId = in.readInt();
         this.attributeName = in.readString();
     }
 
-    public static final Parcelable.Creator<SkuAttribute> CREATOR = new Parcelable.Creator<SkuAttribute>() {
+    public static final Parcelable.Creator<SkuAttrBean> CREATOR = new Parcelable.Creator<SkuAttrBean>() {
         @Override
-        public SkuAttribute createFromParcel(Parcel source) {
-            return new SkuAttribute(source);
+        public SkuAttrBean createFromParcel(Parcel source) {
+            return new SkuAttrBean(source);
         }
 
         @Override
-        public SkuAttribute[] newArray(int size) {
-            return new SkuAttribute[size];
+        public SkuAttrBean[] newArray(int size) {
+            return new SkuAttrBean[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return "SkuAttrBean{" +
+                "specId=" + specId +
+                ", specName='" + specName + '\'' +
+                ", attributeId=" + attributeId +
+                ", attributeName='" + attributeName + '\'' +
+                '}';
+    }
+
+    /**
+     * 排序 -- 根据"传递进来的经纬度"和"列表中的经纬度"计算出距离，再排序
+     */
+    public static class SkuAttributeComparator implements Comparator {
+
+        public int compare(Object o1, Object o2){
+            SkuAttrBean s1 = (SkuAttrBean)o1;
+            SkuAttrBean s2 = (SkuAttrBean)o2;
+
+            int result = s1.getSpecId() > s2.getSpecId() ? 1 :
+                    (s1.getSpecId() == s2.getSpecId() ? 0 : -1);
+            return result;
+        }
+    }
 }

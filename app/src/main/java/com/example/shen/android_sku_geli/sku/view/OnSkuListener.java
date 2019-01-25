@@ -1,7 +1,7 @@
 package com.example.shen.android_sku_geli.sku.view;
 
 
-import com.example.shen.android_sku_geli.sku.bean.SkuAttribute;
+import com.example.shen.android_sku_geli.sku.bean.SkuAttrBean;
 import com.example.shen.android_sku_geli.sku.bean.SpecifiBean;
 
 /**
@@ -13,14 +13,14 @@ public interface OnSkuListener {
      *
      * @param unselectedAttribute
      */
-    void onUnselected(SkuAttribute unselectedAttribute);
+    void onUnselected(SkuAttrBean unselectedAttribute);
 
     /**
      * 属性选中
      *
      * @param selectAttribute
      */
-    void onSelect(SkuAttribute selectAttribute);
+    void onSelect(SkuAttrBean selectAttribute);
 
     /**
      * sku选中

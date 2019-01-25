@@ -3,17 +3,17 @@ package com.example.shen.android_sku_geli.sku.view;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 
-import com.example.shen.android_sku_geli.sku.bean.SkuAttribute;
+import com.example.shen.android_sku_geli.sku.bean.SkuAttrBean;
 import com.example.shen.android_sku_geli.sku.bean.SpecifiBean;
 import com.example.shen.android_sku_geli.sku.utils.ViewUtils;
 import com.example.shen.android_sku_geli.sku.widget.SkuMaxHeightScrollView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -32,9 +32,14 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
     private SpecifiBean.DataBean mSku;
 
     /** 存放 -- 当前 -- 选中属性的信息 */
-    private List<SkuAttribute> mSelectedAttributeList;
+    private List<SkuAttrBean> mSelectedAttributeList;
     /** sku选中状态 -- 回调接口 */
     private OnSkuListener mListener;
+
+    Map<Integer, String> getSpecNameById = new LinkedHashMap<>();
+    Map<String, Integer> getSpecIdByName = new LinkedHashMap<>();
+    Map<Integer, String> getAttributeNameById = new LinkedHashMap<>();
+    Map<String, Integer> getAttributeIdByName = new LinkedHashMap<>();
 
     public SkuSelectScrollView(Context context) {
         super(context);
@@ -110,7 +115,7 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
             mSkuContainerLayout.addView(itemLayout);
 
             // 初始状态下，"选中列表"中数据都为空
-            mSelectedAttributeList.add(new SkuAttribute(getSpecIdByName.get(entry.getKey()),
+            mSelectedAttributeList.add(new SkuAttrBean(getSpecIdByName.get(entry.getKey()),
                     entry.getKey(), -1,  ""));
         }
 
@@ -123,7 +128,7 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
 
             mSelectedAttributeList.clear();
             for (SpecifiBean.DataBean.SpecAttrBean specAttrBean : mSku.getSpec_attr()) {
-                mSelectedAttributeList.add(new SkuAttribute(
+                mSelectedAttributeList.add(new SkuAttrBean(
                         getSpecIdByName.get(specAttrBean.getSpec_name()),
                         specAttrBean.getSpec_name(),
                         getAttributeIdByName.get(specAttrBean.getRes().get(0).getAttr_name()) == null ?
@@ -141,37 +146,9 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
     }
 
 
-//    /**
-//     * 将sku根据属性名进行分组
-//     *
-//     * @param list
-//     * @return 如{ "颜色": {"白色", "红色", "黑色"}, "尺寸": {"M", "L", "XL", "XXL"}}
-//     */
-//    private Map<String, List<String>> getSkuGroupByName(List<Sku> list) {
-//        Map<String, List<String>> dataMap = new LinkedHashMap<>();
-//        for (Sku sku : list) {
-//            for (SkuAttribute attribute : sku.getAttributes()) {
-//                String attributeName = attribute.getKey();
-//                String attributeValue = attribute.getValue();
-//
-//                if (!dataMap.containsKey(attributeName)) {
-//                    dataMap.put(attributeName, new LinkedList<String>());
-//                }
-//
-//                List<String> valueList = dataMap.get(attributeName);
-//                if (!valueList.contains(attributeValue)) {
-//                    dataMap.get(attributeName).add(attributeValue);
-//                }
-//            }
-//        }
-//        return dataMap;
-//    }
-
-
-
     /**
      * 整理下属性
-     *
+     * 排序 和 商品中的属性排序 要一致 这个很重要
      */
     private void getSkuAttribuit() {
 
@@ -180,31 +157,27 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
         }
         int i = 0;
         for(SpecifiBean.DataBean.GoodsSkuBean goodsSkuBean : mSku.getGoods_sku()){
-            List<SkuAttribute> list = new ArrayList<>();
+            List<SkuAttrBean> list = new ArrayList<>();
             for(String sku_attr : goodsSkuBean.getSku_attr().split(",")) {
                 String[] goodsSku = sku_attr
                         .replace("{", "")
                         .replace("}", "").split(":");
 
-//
                 int specId = Integer.valueOf(goodsSku[0]);
                 int attributeId = Integer.valueOf(goodsSku[1]);
 
-                list.add(new SkuAttribute(specId, getSpecNameById.get(specId),
+                list.add(new SkuAttrBean(specId, getSpecNameById.get(specId),
                         attributeId,getAttributeNameById.get(attributeId)));
-
             }
 
-            mSku.getGoods_sku().get(i).setSkuAttributes(list);
+            Collections.sort(list, new SkuAttrBean.SkuAttributeComparator());
+            mSku.getGoods_sku().get(i).setSkuAttrBeans(list);
             i++;
         }
     }
 
 
-    Map<Integer, String> getSpecNameById = new LinkedHashMap<>();
-    Map<String, Integer> getSpecIdByName = new LinkedHashMap<>();
-    Map<Integer, String> getAttributeNameById = new LinkedHashMap<>();
-    Map<String, Integer> getAttributeIdByName = new LinkedHashMap<>();
+
     /**
      * 将sku根据属性名进行分组
      *
@@ -213,7 +186,14 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
      */
     private Map<String, List<String>> getSkuGroupByName(List<SpecifiBean.DataBean.SpecAttrBean> list) {
         Map<String, List<String>> dataMap = new LinkedHashMap<>();
-        for (SpecifiBean.DataBean.SpecAttrBean sku : list) {
+
+        List<SpecifiBean.DataBean.SpecAttrBean> listTemp = new ArrayList<>();
+        listTemp.addAll(list);
+        Collections.sort(listTemp, new SpecifiBean.DataBean.SpecAttrBean.SpecifiComparator());
+
+
+        for (SpecifiBean.DataBean.SpecAttrBean sku : listTemp) {
+
             int specId = sku.getSpec_id();
             String specName = sku.getSpec_name();
             getSpecNameById.put(specId, specName);
@@ -238,8 +218,6 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
         }
         return dataMap;
     }
-
-
 
 
     /**
@@ -275,7 +253,7 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
         for (int i = 0; i < mSku.getGoods_sku().size(); i++) {
             // 属性值是否可点击flag
             SpecifiBean.DataBean.GoodsSkuBean sku = mSku.getGoods_sku().get(i);
-            List<SkuAttribute> attributeBeanList = mSku.getGoods_sku().get(i).getSkuAttributes();
+            List<SkuAttrBean> attributeBeanList = mSku.getGoods_sku().get(i).getSkuAttrBeans();
 
             if (sku.getVirtual_sales() > 0) {
                 String attributeValue = attributeBeanList.get(0).getAttributeName();  // 有这个属性的商品
@@ -292,50 +270,41 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
         for (int i = 0; i < mSkuContainerLayout.getChildCount(); i++) {         // 遍历每个大类
 
             SkuItemLayout itemLayout = (SkuItemLayout) mSkuContainerLayout.getChildAt(i);
-
             /* 遍历sku列表 */
             for (int j = 0; j < mSku.getGoods_sku().size(); j++) {         // 遍历每个商品
                 // 属性值是否可点击flag
                 boolean flag = false;
-
                 // 所有 商品
                 SpecifiBean.DataBean.GoodsSkuBean sku = mSku.getGoods_sku().get(j);
-                List<SkuAttribute> attributeBeanList = sku.getSkuAttributes();     // 每个商品都有多个属性
+                List<SkuAttrBean> attributeBeanList = sku.getSkuAttrBeans();     // 每个商品都有多个属性
                 /* 遍历”选中信息列表" */
                 for (int k = 0; k < mSelectedAttributeList.size(); k++) {       // 每一大类的属性都会放到列表中的 -- 没有选中的是空
                     // i = k，跳过当前属性，避免多次设置是否可点击
                     if (i == k) continue;
-//
-//                    Log.i("shen", "前(i:"+ i +
-//                            "   j:"+j + "   K:" + k +")：" + attributeBeanList.get(k).getAttributeName());
-                    // 选中信息为空，则说明未选中，无法判断是否有不可点击的情形，跳过
-                    if ("".equals(mSelectedAttributeList.get(k).getAttributeName())) continue;
-                    // 选中信息列表中 "不包含" 当前sku的属性，则sku组合不存在，设置为"不可点击"
-                    // 库存为0，设置为不可点击
-                    if (!mSelectedAttributeList.get(k).getAttributeName()
-                            .equals(attributeBeanList.get(k).getAttributeName())
-                            || sku.getVirtual_sales() == 0) {
-                        flag = true;
-                        break;
-                    }
+
+                            // 选中信息为空，则说明未选中，无法判断是否有不可点击的情形，跳过
+                            if ("".equals(mSelectedAttributeList.get(k).getAttributeName())) continue;
+                            // 选中信息列表中 "不包含" 当前sku的属性，则sku组合不存在，设置为"不可点击"
+                            // 库存为0，设置为不可点击
+                            if (!mSelectedAttributeList.get(k).getAttributeName()
+                                    .equals(attributeBeanList.get(k).getAttributeName())
+                                    || sku.getVirtual_sales() == 0) {
+                                flag = true;
+
+                                break;
+                            }
                 }
 
                 // flag 为false时，可点击
                 if (!flag) {
-                    int index = 0;
-                    for(SkuAttribute skuAttribute : attributeBeanList) {
-                        if((int)itemLayout.getTag() == skuAttribute.getSpecId()) {
-                            String attributeValue = attributeBeanList.get(index).getAttributeName();  // i 代表这个商品中的第几大类
-                            itemLayout.optionItemViewEnableStatus(attributeValue);
-                            break;
-                        }
-                        index++;
-                    }
+                    String attributeValue = attributeBeanList.get(i).getAttributeName();  // i 代表这个商品中的第几大类
+                    itemLayout.optionItemViewEnableStatus(attributeValue);
                 }
             }
 
         }
     }
+
 
     /**
      * 设置所有属性的选中状态
@@ -353,7 +322,7 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
      * @return
      */
     private boolean isSkuSelected() {
-        for (SkuAttribute attribute : mSelectedAttributeList) {
+        for (SkuAttrBean attribute : mSelectedAttributeList) {
             if (TextUtils.isEmpty(attribute.getAttributeName())) {
                 return false;
             }
@@ -387,20 +356,13 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
             return null;
         }
         for (SpecifiBean.DataBean.GoodsSkuBean sku : mSku.getGoods_sku()) {
-            List<SkuAttribute> attributeList = sku.getSkuAttributes();
+            List<SkuAttrBean> attributeList = sku.getSkuAttrBeans();
             // 将sku的属性列表与selectedAttributeList匹配，完全匹配则为已选中sku
             boolean flag = true;
             for (int i = 0; i < attributeList.size(); i++) {
-
-                for(SkuAttribute skuAttribute : mSelectedAttributeList){
-                    if(attributeList.get(i).getSpecId() == skuAttribute.getSpecId()) {
-                        if (!isSameSkuAttribute(attributeList.get(i), skuAttribute)) {
-                            flag = false;
-                        }
-                        break;
-                    }
+                if (!isSameSkuAttribute(attributeList.get(i), mSelectedAttributeList.get(i))) {
+                    flag = false;
                 }
-
             }
             if (flag) {
                 return sku;
@@ -416,8 +378,8 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
      */
     public void setSelectedSku(SpecifiBean.DataBean.GoodsSkuBean sku) {
         mSelectedAttributeList.clear();
-        for (SkuAttribute attribute : sku.getSkuAttributes()) {
-            mSelectedAttributeList.add(new SkuAttribute(
+        for (SkuAttrBean attribute : sku.getSkuAttrBeans()) {
+            mSelectedAttributeList.add(new SkuAttrBean(
                     attribute.getSpecId(),
                     attribute.getSpecName(),
                     attribute.getAttributeId(),
@@ -438,13 +400,13 @@ public class SkuSelectScrollView extends SkuMaxHeightScrollView implements SkuIt
      * @param nextAttribute
      * @return
      */
-    private boolean isSameSkuAttribute(SkuAttribute previousAttribute, SkuAttribute nextAttribute) {
+    private boolean isSameSkuAttribute(SkuAttrBean previousAttribute, SkuAttrBean nextAttribute) {
         return previousAttribute.getSpecName().equals(nextAttribute.getSpecName())
                 && previousAttribute.getAttributeName().equals(nextAttribute.getAttributeName());
     }
 
     @Override
-    public void onSelect(int position, boolean selected, SkuAttribute attribute) {
+    public void onSelect(int position, boolean selected, SkuAttrBean attribute) {
         if (selected) {
             // 选中，保存选中信息
             mSelectedAttributeList.set(position, attribute);

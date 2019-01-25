@@ -1,5 +1,6 @@
 package com.example.shen.android_sku_geli.sku.bean;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -122,6 +123,24 @@ public class SpecifiBean {
                     this.attr_name = attr_name;
                 }
             }
+
+
+
+            /**
+             * 排序 -- 根据"传递进来的经纬度"和"列表中的经纬度"计算出距离，再排序
+             */
+            public static class SpecifiComparator implements Comparator {
+
+                public int compare(Object o1, Object o2){
+                    SpecAttrBean s1 = (SpecAttrBean)o1;
+                    SpecAttrBean s2 = (SpecAttrBean)o2;
+
+                    int result = s1.getSpec_id() > s2.getSpec_id() ? 1 :
+                            (s1.getSpec_id() == s2.getSpec_id() ? 0 : -1);
+                    return result;
+                }
+            }
+
         }
 
         public static class GoodsSkuBean {
@@ -151,7 +170,7 @@ public class SpecifiBean {
             private int virtual_sales;
             private Object sh_price;
 
-            List<SkuAttribute> skuAttributes;
+            List<SkuAttrBean> mSkuAttrBeans;
 
             public int getSku_id() {
                 return sku_id;
@@ -241,12 +260,30 @@ public class SpecifiBean {
                 this.sh_price = sh_price;
             }
 
-            public List<SkuAttribute> getSkuAttributes() {
-                return skuAttributes;
+            public List<SkuAttrBean> getSkuAttrBeans() {
+                return mSkuAttrBeans;
             }
 
-            public void setSkuAttributes(List<SkuAttribute> skuAttributes) {
-                this.skuAttributes = skuAttributes;
+            public void setSkuAttrBeans(List<SkuAttrBean> skuAttrBeans) {
+                this.mSkuAttrBeans = skuAttrBeans;
+            }
+
+            @Override
+            public String toString() {
+                return "GoodsSkuBean{" +
+//                        "sku_id=" + sku_id +
+//                        ", goods_id=" + goods_id +
+//                        ", sku_attr='" + sku_attr + '\'' +
+//                        ", price='" + price + '\'' +
+//                        ", inventory=" + inventory +
+//                        ", sales=" + sales +
+//                        ", pack_attr='" + pack_attr + '\'' +
+//                        ", refrigerate='" + refrigerate + '\'' +
+//                        ", tiered_pri='" + tiered_pri + '\'' +
+//                        ", virtual_sales=" + virtual_sales +
+//                        ", sh_price=" + sh_price +
+                        ", mSkuAttrBeans=" + mSkuAttrBeans.toString() +
+                        '}';
             }
         }
     }

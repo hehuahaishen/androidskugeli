@@ -15,7 +15,7 @@ import com.example.shen.android_sku_geli.sku.utils.ScreenUtils;
  */
 
 public class SkuItemView extends TextView {
-    private String attributeValue;
+    private String attributeName;
 
     public SkuItemView(Context context) {
         super(context);
@@ -45,12 +45,12 @@ public class SkuItemView extends TextView {
         setMaxWidth(ScreenUtils.dp2PxInt(context, 200));
     }
 
-    public String getAttributeValue() {
-        return attributeValue;
+    public String getAttributeName() {
+        return attributeName;
     }
 
-    public void setAttributeValue(String attributeValue) {
-        this.attributeValue = attributeValue;
-        setText(attributeValue);
+    public void setAttributeName(String attributeName) {
+        this.attributeName = attributeName;
+        setText(attributeName);
     }
 }
